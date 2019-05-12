@@ -1,4 +1,5 @@
 
+
 #!/bin/bash
 
 if [ $# -ne 2 ]
@@ -19,25 +20,28 @@ search_regex="^.*($search_pattern).*$"
 
 while IFS= read line
 do
-
- #echo "Processing $line"
- current_ts=`echo $line | grep -ow '^[0-9/\-]* [0-9][0-9]:[0-9][0-9]:[0-9][0-9]'`
- pattern_found_current="false"
-
- if [[ $line =~ $search_regex  ]];
+ 
+  pattern_found_current="false"
+  
+  if [[ $line =~ $search_regex  ]];
   then
     pattern_found_flag="true"
     pattern_found_current="true"
-    echo "pattern found"
- elif [[ ! -z "$current_ts" && "$pattern_found_current" = "false" ]];
- then
-    pattern_found_flag="false"
-    echo "pattern not found"
- fi
-
- if [[ "$pattern_found_flag" = "true" ]];
- then
     echo $line >> $output_file
+    continue
+  fi
+  
+ if [[ "$pattern_found_flag" = "false" ]];
+ then
+    continue
  fi
+  
+ current_ts=`echo $line | grep -ow '^[0-9/\-]* [0-9][0-9]:[0-9][0-9]:[0-9][0-9]'`
+ if [[ -z "$current_ts" ]];
+ then
+  echo $line >> $output_file
+ else 
+  pattern_found_flag="false"
+ fi
+ 
 done < $application_log_file
-
