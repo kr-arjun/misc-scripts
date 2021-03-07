@@ -1,0 +1,40 @@
+%scala
+import org.apache.hadoop.hive.metastore.TableType;
+import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
+import org.apache.hadoop.hive.metastore.api.ColumnStatisticsData;
+import org.apache.hadoop.hive.metastore.api.ColumnStatisticsData._Fields;
+import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
+import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.LongColumnStatsData;
+import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.hadoop.hive.metastore.api.SerDeInfo;
+import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
+import org.apache.hadoop.hive.metastore.api.Table;
+import com.amazonaws.services.glue.model._;
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import java.util.Arrays;
+import java.util.HashMap;
+import com.google.common.collect.Lists;
+val myHiveConf = new org.apache.hadoop.hive.conf.HiveConf()
+myHiveConf.set("hive.metastore.glue.catalogid", "<catalogId>")
+val catalogId = com.amazonaws.glue.catalog.util.MetastoreClientUtils.getCatalogId(myHiveConf)
+val glueMSC = new com.amazonaws.glue.catalog.metastore.AWSCatalogMetastoreClient(myHiveConf)
+val glueClient = {
+  val field = glueMSC.getClass.getDeclaredField("glueClient")
+  field.setAccessible(true)
+  field.get(glueMSC).asInstanceOf[com.amazonaws.services.glue.AWSGlue]
+}
+import com.amazonaws.services.glue.model.GetUserDefinedFunctionRequest;
+import com.amazonaws.services.glue.model.GetUserDefinedFunctionsRequest;
+import com.amazonaws.services.glue.model.GetUserDefinedFunctionsResult;
+
+def getfunctionDef(database:String,functionName:String) = {
+  val getUserDefinedFunctionRequest = new com.amazonaws.services.glue.model.GetUserDefinedFunctionRequest()
+    .withDatabaseName(database)
+    .withFunctionName(functionName)
+  val result = glueClient.getUserDefinedFunction(getUserDefinedFunctionRequest).getUserDefinedFunction()
+  result
+}
+
+getfunctionDef("default","my_udf")
